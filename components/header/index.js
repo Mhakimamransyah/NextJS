@@ -1,8 +1,9 @@
 import WithAuth from "../with-auth"
+import styles from "./styles.module.css"
 
 function Header({ color }) {
   return (
-    <div className={color}>
+    <div className={styles.header}>
       Header
     </div >
   )
