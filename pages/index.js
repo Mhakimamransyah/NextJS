@@ -6,7 +6,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
   return (
-    <Layout metaTitle={"Home"}>
+    <Layout metaTitle={"home"} metaDescription={"Homepage"}>
       <Content />
     </Layout>
   )
