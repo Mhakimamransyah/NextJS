@@ -1,6 +1,6 @@
 export default function Footer() {
   return (
-    <div className="">
+    <div className="p-3">
       Footer
     </div>
   )
