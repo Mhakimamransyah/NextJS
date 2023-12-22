@@ -1,10 +1,11 @@
 import Link from "next/link";
-import Layout from "../../layout";
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 
 export default function Users() {
 
   const [users, setUsers] = useState([]);
+  const LayoutComponent = dynamic(() => import('... @/layout'))
 
   useEffect(() => {
 
@@ -15,7 +16,8 @@ export default function Users() {
   }, [])
 
   return (
-    <Layout metaTitle={"users"} metaDescription={"All about users list"}>
+
+    <LayoutComponent metaTitle={"users"} metaDescription={"All about users list"}>
       <div className="mb-4 font-bold">List users</div>
       <div>
         {
@@ -29,6 +31,6 @@ export default function Users() {
           })
         }
       </div>
-    </Layout>
+    </LayoutComponent>
   );
 }
