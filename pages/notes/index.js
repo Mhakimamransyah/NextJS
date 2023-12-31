@@ -1,80 +1,87 @@
-import { Button, Card, CardBody, CardFooter, CardHeader, Grid } from "@chakra-ui/react";
+import { Button, Card, CardBody, CardFooter, CardHeader, FormControl, FormLabel, Grid, Input, ModalBody, ModalCloseButton, ModalFooter, ModalHeader, Textarea, useDisclosure } from "@chakra-ui/react";
 import dynamic from "next/dynamic"
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
-export default function Notes() {
+export default function Notes({ data }) {
 
-  const Layout = dynamic(() => import("... @/layout"))
-  const [notes, setNotes] = useState();
-  const [progres, setProgres] = useState('load');
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const Layout = dynamic(() => import("... @/layout"));
+  const Modal = dynamic(() => import("... @/components/modal"));
+  const [customModal, setCustomModal] = useState(null);
   const router = useRouter();
+  const notes = data?.data;
 
+  const deleteNotes = (id, title) => {
 
-  useEffect(() => {
+    setCustomModal(
+      <div>
+        <ModalHeader>Delete data</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          Delete <span className="italic">{title}</span> notes ?
+        </ModalBody>
+        <ModalFooter>
+          <Button colorScheme={'red'} onClick={() => {
+            fetch(`api/notes/delete/${id}`, {
+              method: "DELETE"
+            }).then(res => res.json()).
+              then(data => {
+                router.reload();
+              }).catch((e) => {
+                alert("failed while deleting data");
+              })
+          }}>Delete</Button>
+          <Button className="ml-3" colorScheme={'teal'} onClick={onClose}>Cancel</Button>
+        </ModalFooter>
+      </div>
+    );
 
-    async function fetchListNotes() {
+    onOpen();
 
-      try {
+  }
 
-        const res = await fetch("/api/notes");
-        const data = await res.json();
+  const addNotes = () => {
+    const FormAddNotes = dynamic(() => import("... @/components/form/add-notes"));
+    setCustomModal(<FormAddNotes onClose={onClose} />);
+    onOpen();
+  }
 
-        setNotes(data?.data);
+  const updateNotes = (id, title, description) => {
+    const FormUpdateNotes = dynamic(() => import("... @/components/form/update-notes"));
+    setCustomModal(<FormUpdateNotes onClose={onClose} id={id} title={title} description={description} />);
+    onOpen();
 
-        setProgres('success');
-
-      } catch (e) {
-
-        setProgres('error');
-
-      }
-
-    }
-
-    fetchListNotes();
-
-  }, [])
+  }
 
   return (
     <Layout metaTitle={'Notes'} metaDescription={'All about notes'}>
-      <div className="mb-5 mt-3">
-        <Link href={'/notes/add'} className="p-2 bg-blue-300 rounded-lg text-blue-700">Add</Link>
+      <div className="mb-5 mt-3 w-fit">
+        <div onClick={addNotes} className="hover:bg-blue-800 hover:text-white hover:cursor-pointer p-2 bg-blue-300 rounded-lg text-blue-700">Add</div>
       </div>
-      {
-        (progres === 'load') ?
-          "loading.."
-          :
+      <Modal children={customModal} isOpen={isOpen} onClose={onClose} />
+      <Grid templateColumns={'repeat(5,1fr)'} gap={6}>
+        {
+          (notes?.map((item) => (
 
-          (progres == 'error') ?
-            "error :("
-            :
-            <Grid templateColumns={'repeat(5,1fr)'} gap={6}>
-              {
-                (notes?.map((item) => (
-
-                  <Card>
-                    <CardHeader className="font-bold text-lg">{item.title}</CardHeader>
-                    <CardBody>{item.description}</CardBody>
-                    <CardFooter gap={8}>
-                      <Link href={`notes/edit/${item.id}`}><Button colorScheme={'teal'}>Edit</Button></Link>
-                      <Button colorScheme={'red'} onClick={() => {
-                        fetch(`api/notes/delete/${item.id}`, {
-                          method: "DELETE"
-                        }).then(res => res.json()).
-                          then(data => {
-                            router.reload();
-                          }).catch((e) => {
-                            alert("failed while deleting data");
-                          })
-                      }}>Delete</Button>
-                    </CardFooter>
-                  </Card>
-                )))
-              }
-            </Grid>
-      }
-    </Layout>
+            <Card>
+              <CardHeader className="font-bold text-lg">{item.title}</CardHeader>
+              <CardBody>{item.description}</CardBody>
+              <CardFooter gap={8}>
+                <Button colorScheme={'teal'} onClick={() => { updateNotes(item.id, item.title, item.description); }}>Edit</Button>
+                <Button colorScheme={'red'} onClick={() => deleteNotes(item.id, item.title)}>Delete</Button>
+              </CardFooter>
+            </Card>
+          )))
+        }
+      </Grid>
+    </Layout >
   )
+}
+
+export async function getServerSideProps() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/notes`);
+  const data = await res.json();
+  return { props: { data } }
 }
