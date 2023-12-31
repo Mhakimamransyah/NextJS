@@ -3,5 +3,5 @@ export default function Footer() {
     <div className="p-3">
       Footer
     </div>
-  )
+  );
 }
