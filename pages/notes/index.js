@@ -3,6 +3,7 @@ import dynamic from "next/dynamic"
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { useMutatation } from "../../hooks/useMutation";
 
 export default function Notes({ data }) {
 
@@ -10,6 +11,7 @@ export default function Notes({ data }) {
   const Layout = dynamic(() => import("... @/layout"));
   const Modal = dynamic(() => import("... @/components/modal"));
   const [customModal, setCustomModal] = useState(null);
+  const { mutate } = useMutatation();
   const router = useRouter();
   const notes = data?.data;
 
@@ -24,14 +26,13 @@ export default function Notes({ data }) {
         </ModalBody>
         <ModalFooter>
           <Button colorScheme={'red'} onClick={() => {
-            fetch(`api/notes/delete/${id}`, {
-              method: "DELETE"
-            }).then(res => res.json()).
-              then(data => {
-                router.reload();
-              }).catch((e) => {
-                alert("failed while deleting data");
-              })
+
+            mutate({
+              method: "DELETE",
+              url: `api/notes/delete/${id}`,
+              onSuccess: () => router.reload()
+            });
+
           }}>Delete</Button>
           <Button className="ml-3" colorScheme={'teal'} onClick={onClose}>Cancel</Button>
         </ModalFooter>

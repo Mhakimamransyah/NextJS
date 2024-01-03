@@ -4,32 +4,28 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
+import { useMutatation } from "../../hooks/useMutation";
 
 export default function AddNote() {
 
   const Layout = dynamic(() => import("... @/layout"));
   const [progres, setProgres] = useState('iddle');
   const title = useRef(null);
+  const { mutate, isLoading, isError } = useMutatation();
   const description = useRef(null);
   const router = useRouter();
 
   const submit = () => {
 
-    setProgres("load");
-
-    fetch("/api/notes", {
+    mutate({
       method: "POST",
-      body: JSON.stringify({
+      payload: JSON.stringify({
         title: title.current.value,
         description: description.current.value
-      })
-    }).then(res => res.json()).then(data => {
-      router.back();
-    }).catch(e => {
-      setProgres("error");
-    }).finally(() => {
-      setProgres("iddle");
-    })
+      }),
+      url: "/api/notes"
+    });
+
   }
 
   return (
@@ -40,7 +36,7 @@ export default function AddNote() {
         </div>
         <div>
           {
-            (progres === "error") ?
+            (isError) ?
               <Alert className="mb-6" status="error">
                 <AlertIcon />
                 <AlertTitle>Error while submitting</AlertTitle>
@@ -59,7 +55,7 @@ export default function AddNote() {
             <Textarea ref={description} />
           </div>
           {
-            (progres === "iddle" || progres === "error") ?
+            (!isLoading) ?
               <Button className="mt-3 w-full" colorScheme={'teal'} onClick={submit}>Create New</Button>
               :
               <Button className="mt-3 w-full" colorScheme={'teal'} onClick={submit} disabled>submitting....</Button>
