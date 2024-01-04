@@ -1,10 +1,12 @@
 import dynamic from "next/dynamic";
-import { useQueries } from "../../hooks/useQueries";
+import useSWR from "swr";
+import fetcher from "../../utils/fetch";
 
 export default function Post() {
 
   const Layout = dynamic(() => import("... @/layout"))
-  const { res, isLoading, isError } = useQueries('https://jsonplaceholder.typicode.com/posts');
+
+  const { data, error, isLoading } = useSWR('https://jsonplaceholder.typicode.com/posts', fetcher);
 
 
   return (
@@ -13,8 +15,8 @@ export default function Post() {
         (isLoading) ?
           <p>Loading...</p>
           :
-          (isError) ? <p>Error happen</p> :
-            (res?.map((item) => (
+          (error) ? <p>Error happen</p> :
+            (data?.map((item) => (
               <div className="mb-4">
                 <p>{item.title}</p>
                 <p>{item.body}</p>
